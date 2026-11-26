@@ -10,12 +10,18 @@ const LINE =
 const outDir = process.env.MAKEFUN_OUTPUT_DIR ?? "/output";
 
 // Gate guard: the entry must be 1–120 characters and not only whitespace.
-if (LINE.length < 1 || LINE.length > 120) {
-  throw new Error(`entry must be 1-120 characters, got ${LINE.length}`);
+// Both checks run before any file is written, so a rejected entry leaves
+// no partial output behind.
+function guardEntry(line: string): void {
+  if (line.length < 1 || line.length > 120) {
+    throw new Error(`entry must be 1-120 characters, got ${line.length}`);
+  }
+  if (line.trim().length === 0) {
+    throw new Error("entry must not be only whitespace");
+  }
 }
-if (LINE.trim().length === 0) {
-  throw new Error("entry must not be only whitespace");
-}
+
+guardEntry(LINE);
 
 mkdirSync(outDir, { recursive: true });
 writeFileSync(join(outDir, "entry.txt"), LINE, "utf8");
